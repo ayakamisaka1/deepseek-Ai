@@ -12,4 +12,10 @@ public class ChatAiReq {
     @Schema(description = "问题")
     @NotBlank(message = "content不能为空")
     private String content;
+
+    /**
+     * ai模型
+     */
+    @Schema(description = "ai模型 0:基础模型 1:强化模型")
+    private String modelType;
 }

@@ -10,16 +10,19 @@ import ai.dream.service.DeepseekService;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.Resource;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 @Service
+@Slf4j
 public class DeepseekServiceImpl implements DeepseekService {
 
     /**
@@ -80,15 +83,15 @@ public class DeepseekServiceImpl implements DeepseekService {
         ChatRequest request = new ChatRequest();
         List<ChatMessage> messages = new ArrayList<>();
         ChatMessage message = new ChatMessage();
-        message.setContent(req.getContent()+"记住以后没叫你返回英语  你就给我返回中文 。请以 JSON 格式返回响应，确保数据结构符合 JSON 规范。");
-        message.setRole("system");
+        message.setContent(req.getContent());
+        message.setRole("user");
         messages.add(message);
         request.setMessages(messages);
         ChatRequest.Responseformat type = new ChatRequest.Responseformat();
-        type.setType("json_object");  // ✅ 确保返回 JSON 格式
+        type.setType("text");  // ✅ 确保返回 JSON 格式
         request.setResponse_format(type);
         //ai模型选择
-        request.setModel("deepseek-chat");
+        request.setModel(modelType(req.getModelType()));
         request.setStop(null);
         request.setMax_tokens(4096);
         request.setLogprobs(false);
@@ -107,21 +110,25 @@ public class DeepseekServiceImpl implements DeepseekService {
         try {
             if (response!=null&&response.getBody()!=null) {
                 ObjectMapper objectMapper = new ObjectMapper();
-                // 将 JSON 字符串转换为 JsonNode 对象
-                JsonNode rootNode = objectMapper.readTree(response.getBody());
-                // 从 JsonNode 中获取 'choices' 数组
-                JsonNode choicesNode = rootNode.path("choices").get(0).path("message").path("content");
-                // 进一步解析 content 中的 response 字段
-                ObjectMapper contentMapper = new ObjectMapper();
-                JsonNode contentNode = contentMapper.readTree(choicesNode.asText());
-                // 提取 'response' 字段
-                entity.setMsg(contentNode.path("response").asText());
+                log.info(response.getBody());
+                JsonNode responseJson = objectMapper.readTree(response.getBody());
+                // 提取 content 字段
+                String content = responseJson.path("choices").get(0).path("message").path("content").asText();
+                entity.setMsg(content);
                 return entity;
             }else {
                 throw new ServiceException();
             }
         } catch (Exception e) {
+            log.error(e.getMessage());
             throw new ServiceException();
         }
+    }
+
+    public String modelType(String type){
+        Map<String,String> map = new HashMap<>();
+        map.put("0","deepseek-chat");//基础AI deepseek-chat
+        map.put("1","deepseek-reasoner");//升级AI deepseek-reasoner
+        return map.get(type)==null?"deepseek-chat":map.get(type);
     }
 }
