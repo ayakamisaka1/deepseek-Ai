@@ -1,0 +1,18 @@
+spring:
+  application:
+    name: ai-dream
+  profiles:
+    active: dev
+server:
+  port: 9300 #
+
+logging:
+  level:
+    com.baomidou.mybatisplus: debug   # MyBatis-Plus 的日志级别，设置为 debug
+
+    jdbc:
+      sql: debug                     # JDBC SQL 的日志输出
+
+
+
+
