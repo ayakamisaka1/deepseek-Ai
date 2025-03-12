@@ -8,6 +8,7 @@ spring:
         enabled: true
         username: ps
         password: star
+        ip: ${HOST_IP}
       config:
         server-addr: 1.94.249.22:8848 #nacos配置中心地址
         namespace: ai-dream
