@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 @Data
-public class ChatAiResp {
+public class BalanceResp {
     /**
      * 返回值
      */
